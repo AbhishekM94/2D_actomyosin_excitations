@@ -59,10 +59,7 @@ F = (1.0/dt)*(r-r0)*v*dx + theta*adv_term(r,v) + (1.0-theta)*adv_term(r,v) - the
 r0.interpolate(ic)
 
 #Analytical solution for pure diffusion(c ~ (0,0))
-def exact_soln(t):
-    rn0 = Expression("(A/((sigma/2) + t)*4*pi*D)*exp(-((x[0]-px)*(x[0]-px) + (x[1]-px)*(x[1]-px))/(4*D*(sigma/2) + 4*D*t))", degree = 1, sigma=sigma, D=D, t=t, pi = pi, A=A, px=px, py=py)
-    rn = interpolate(rn0, V)
-    return rn 
+rn0 = Expression("(A/((sigma/2) + t)*4*pi*D)*exp(-((x[0]-px)*(x[0]-px) + (x[1]-px)*(x[1]-px))/(4*D*(sigma/2) + 4*D*t))", degree = 1, sigma=sigma, D=D, t=t, pi = pi, A=A, px=px, py=py) 
 
 #Maximum Error computer
 def err_compare(r,t):
@@ -83,16 +80,15 @@ while t < t_end:
     print 'time =', t
     
     solve(F == 0, r)
-    error = err_compare(r,t)
+    rn = interpolate(rn0, V)
+    error = np.abs(rn.vector().array() - r.vector().array()).max()
     mer[i] = error
     r0.assign(r)
-    ra = exact_soln(t)
     t += dt
     i += 1 
     rFile.write(r, t)
-    rnFile.write(ra,t)
-    
-
+    rnFile.write(rn,t)
+ 
 rFile.close()
 rnFile.close()
 print mer
